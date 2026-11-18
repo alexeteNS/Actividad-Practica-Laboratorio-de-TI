@@ -44,16 +44,35 @@ Después abre en el navegador: **http://127.0.0.1:5000/**
 
 ### `POST /prestar-equipo`
 
-Recibe los datos del formulario HTML (`application/x-www-form-urlencoded`).
-
+Recibe los datos del formulario HTML (`application/x-www-form-urlencoded`), aplica las reglas en orden y devuelve `index.html` con el resultado.
 
 **Parámetros:**
 - `nombre` (string): nombre del estudiante.
 - `equipo` (string): `Router Cisco`, `Laptop de Pruebas` o `Multímetro Digital`.
-- `adeudos` (bool): `Si` / `No`.
+- `adeudos` (string): `Si` / `No`.
 - `semestre` (int): semestre que cursa.
 
-**Respuesta:**
-- Aprobado: muestra el folio único de autorización.
-- Rechazado: muestra el motivo.
+**Reglas:**
+1. `adeudos = Si`: se rechaza sin importar el equipo.
+2. `equipo = Laptop de Pruebas` y `semestre < 4`: se rechaza por política de seguridad.
+3. Si pasa las anteriores: se aprueba y genera un folio único (`LAB-XXXXXXXX`).
 
+**Respuesta:**
+- Aprobado: `aprobado = True`, `nombre`, `equipo`, `folio`.
+- Rechazado: `aprobado = False`, `nombre`, `equipo`, `motivo`.
+
+---
+
+## Formulario (`templates/index.html`)
+
+Envía los datos a `/prestar-equipo` con el método `POST`.
+
+**Resultado:**
+- Si `aprobado` es verdadero, muestra el `folio`.
+- Si `aprobado` es falso, muestra el `motivo` del rechazo.
+
+**Notas:**
+- `nombre`: input text, `equipo`: select, `adeudos`: radio, `semestre`: input number (min 1).
+- Todos los campos llevan `required`.
+- Los `value` deben ser exactos a los que valida `app.py`.
+- El resultado se muestra en el mismo `index.html` con `{% if aprobado %}`.
